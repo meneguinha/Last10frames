@@ -61,8 +61,20 @@ if uploaded_file is not None:
                 for idx, (frame_num, frame_data) in enumerate(frames):
                     col = cols[idx % 5]
                     with col:
-                        st.image(frame_data, caption=f"Frame {frame_num}", use_container_width=True)
+                        st.image(frame_data, caption=f"Frame {frame_num}", width="stretch")
                         
+                        frame_bgr = cv2.cvtColor(frame_data, cv2.COLOR_RGB2BGR)
+                        success, buffer = cv2.imencode(".jpg", frame_bgr)
+                        if success:
+                            st.download_button(
+                                label="⬇️ Download",
+                                data=buffer.tobytes(),
+                                file_name=f"frame_{frame_num}.jpg",
+                                mime="image/jpeg",
+                                width="stretch",
+                                key=f"dl_btn_{frame_num}"
+                            )
+
                 # Prepare zip file for download
                 zip_buffer = BytesIO()
                 with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
@@ -80,7 +92,7 @@ if uploaded_file is not None:
                     data=zip_buffer.getvalue(),
                     file_name="last_10_frames.zip",
                     mime="application/zip",
-                    use_container_width=True
+                    width="stretch"
                 )
             else:
                 st.error("Failed to extract frames.")
